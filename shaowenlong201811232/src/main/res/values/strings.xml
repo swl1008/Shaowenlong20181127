@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name" translatable="false">Shaowenlong20181123</string>
+    <string name="close_drawer" translatable="false">关闭</string>
+    <string name="open_drawer" translatable="false">开启</string>
+</resources>
