@@ -1,9 +1,13 @@
 package swl.bwie.com.myapplication1127;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.youth.banner.Banner;
@@ -12,58 +16,85 @@ import com.youth.banner.loader.ImageLoaderInterface;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import swl.bwie.com.myapplication1127.Bean.Bean;
 import swl.bwie.com.myapplication1127.NetUtils.NetUtil;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String lujing = "http://www.zhaoapi.cn/product/getProductDetail?pid=1";
-    private Banner banner;
+    private Banner img_banner;
+    private TextView tTitle;
+    private ArrayList<String> request;
+    private final int UPDATE_UI=1;
+    @SuppressLint("HandlerLeak")
+    private Handler handler = new Handler(){
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case UPDATE_UI:
+                    String ttilte = (String) msg.obj;
+                    tTitle.setText(ttilte);
+                    break;
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //获取资源ID
-        banner = findViewById(R.id.banner);
-        //设置banner的样式
-        banner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE);
-        //设置图片加载器
-        banner.setImageLoader(new ImageLoaderInterface<ImageView>() {
+        img_banner = findViewById(R.id.img_banner);
+        tTitle = findViewById(R.id.ttitle);
+
+        img_banner.setBannerStyle(BannerConfig.CIRCLE_INDICATOR);
+
+        initData();
+
+        img_banner.setImageLoader(new ImageLoaderInterface<ImageView>() {
+
             @Override
             public void displayImage(Context context, Object path, ImageView imageView) {
-                Bean.SellerBean news = (Bean.SellerBean)path;
-                ImageLoader.getInstance().displayImage(news.getIcon(),imageView);
+                Bean.DataBean dataBean= (Bean.DataBean) path;
+                for(int i = 0;i<request.size();i++){
+                    com.nostra13.universalimageloader.core.ImageLoader.getInstance().displayImage(request.get(i),imageView);
+                }
             }
 
             @Override
             public ImageView createImageView(Context context) {
-                ImageView imageView=new ImageView(context);
-                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                ImageView imageView = new ImageView(context);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 return imageView;
             }
         });
-        initData();
+
     }
     private void initData() {
-        NetUtil.yibu(lujing, Bean.class, new NetUtil.CallBack<Bean>() {
+
+        NetUtil.getRequest("http://www.zhaoapi.cn/product/getProductDetail?pid=1", Bean.class, new NetUtil.CallBack<Bean>() {
             @Override
-            public void getdata(Bean o) {
-                //设置图片集合
-                banner.setImages(o.getData());
-                //设置标题
-                banner.setBannerTitles(initdots(o));
-                //banner设置方法全部调用完毕时最后调用
-                banner.start();
+            public void getdata(Bean bean) {
+                request = new ArrayList<>();
+
+                String images = bean.getData().getImages();
+
+                Pattern pen = Pattern.compile("\\|");
+
+
+
+                String[] img= pen.split(images);
+
+                for(int i =0 ;i<img.length;i++){
+                    request.add(img[i]);
+                }
+                img_banner.setImages(request);
+                //img_banner.setBannerTitles(getTitles(bean));
+                img_banner.start();
+                handler.sendMessage(handler.obtainMessage(UPDATE_UI,bean.getData().getTitle()));
             }
         });
-    }
 
-    private List<String> initdots(Bean o) {
-        List<String> list=new ArrayList<>();
-        for(Bean.SellerBean cc:o.getSeller()){
-            list.add(cc.getName());
-        }
-        return list;
     }
 }

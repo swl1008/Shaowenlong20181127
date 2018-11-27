@@ -1,7 +1,5 @@
-package swl.bwie.com.myapplication1127.NetUtils;
+package swl.bwie.com.zuoye2;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 
 import com.google.gson.Gson;
@@ -11,10 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-public class NetUtil {
+public class HttpUtil {
     public interface CallBack<T>{
         void getdata(T t);
     }
@@ -23,7 +20,7 @@ public class NetUtil {
         new AsyncTask<String, Void, Object>() {
             @Override
             protected Object doInBackground(String... strings) {
-                return NetUtil.getRequest(strings[0],clazz);
+                return HttpUtil.getRequest(strings[0],clazz);
             }
 
             @Override
@@ -71,4 +68,5 @@ public class NetUtil {
         bufferedReader.close();
         return stringBuilder.toString();
     }
+
 }
